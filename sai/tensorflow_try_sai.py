@@ -42,7 +42,7 @@ model = hub.load('https://tfhub.dev/google/movenet/multipose/lightning/1')
 movenet = model.signatures['serving_default']
 
 
-cap = cv2.VideoCapture('videos/1.mp4')
+cap = cv2.VideoCapture('videos/3.mp4')
 while cap.isOpened():
     
     EDGES = {

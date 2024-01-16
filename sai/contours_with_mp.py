@@ -1,8 +1,31 @@
 import cv2
 import numpy as np
-import random
 import mediapipe as mp
+from mediapipe.framework.formats import landmark_pb2
+from mediapipe import solutions
 
+
+def draw_landmarks_on_image(rgb_image, detection_result):
+    pose_landmarks_list = detection_result.pose_landmarks
+    annotated_image = np.copy(rgb_image)
+
+    # Loop through the detected poses to visualize.
+    for idx in range(len(pose_landmarks_list)):
+        pose_landmarks = pose_landmarks_list[idx]
+        # Draw the pose landmarks.
+        pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        pose_landmarks_proto.landmark.extend([
+        landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in pose_landmarks
+        ])
+
+            
+    
+        solutions.drawing_utils.draw_landmarks(
+        annotated_image,
+        pose_landmarks_proto,
+        solutions.pose.POSE_CONNECTIONS,
+        solutions.drawing_styles.get_default_pose_landmarks_style())
+    return annotated_image
 
 def draw_lines_on_limbs(frame,result):
 
@@ -45,10 +68,27 @@ def add_random_noise(image, intensity=25):
 
 def main():
     
+    model_path = 'D:/VsCodeProjects/Python/Github Projects/video_to_doodle/ai_for_art/sai/pose_landmarker_full.task'
+    frame_timestamp = 1
+
+
+    BaseOptions = mp.tasks.BaseOptions
+    PoseLandmarker = mp.tasks.vision.PoseLandmarker
+    PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
+    PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
+    VisionRunningMode = mp.tasks.vision.RunningMode
 
     mp_pose = mp.solutions.pose
+    options = PoseLandmarkerOptions(
+    base_options=BaseOptions(model_asset_path=model_path),
+    running_mode=VisionRunningMode.VIDEO,
+    num_poses=50,
+    min_pose_detection_confidence=0.81,
+    min_pose_presence_confidence=0.9,
+    min_tracking_confidence=0.8,
+    )
 
-    pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5,num_poses=20)
+
 
 
     
@@ -64,50 +104,58 @@ def main():
         print("Error: Couldn't open the webcam.")
         return
 
-    while True:
-        # Read a frame from the webcam
-        ret, frame = cap.read()
-        # Check if the frame is read successfully
-        if not ret:
-            print("Error: Couldn't read a frame.")
-            break
+    with PoseLandmarker.create_from_options(options) as landmarker:
 
-        # Convert the frame to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        rgb_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-        pose_results = pose.process(rgb_frame)
+        while True:
+            # Read a frame from the webcam
+            ret, frame = cap.read()
+            # Check if the frame is read successfully
+            if not ret:
+                print("Error: Couldn't read a frame.")
+                break
+            
+
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+            detection_result = landmarker.detect_for_video(mp_image,frame_timestamp)
+            frame_timestamp = frame_timestamp + 1
+
+            frame_landmarks = draw_landmarks_on_image(frame,detection_result=detection_result)
+            # Convert the frame to grayscale
+            #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            #rgb_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+            #pose_results = pose.process(rgb_frame)
 
 
-        # Adjust Canny edge detection thresholds for sensitivity
-        low_threshold = 100  # You can experiment with different values
-        high_threshold = 205  # You can experiment with different values
-        edges = cv2.Canny(gray, low_threshold, high_threshold)
+            # Adjust Canny edge detection thresholds for sensitivity
+            #low_threshold = 100  # You can experiment with different values
+            #high_threshold = 205  # You can experiment with different values
+            #edges = cv2.Canny(gray, low_threshold, high_threshold)
 
-        # Find contours in the edged image
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # Find contours in the edged image
+            #contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Create a black background
-        black_background = np.zeros_like(frame)
+            # Create a black background
+            #black_background = np.zeros_like(frame)
 
-        # Draw contours on the black background
-        contour_frame = black_background.copy()
+            # Draw contours on the black background
+            #contour_frame = black_background.copy()
 
-        # Generate random Gaussian noise
-        
+            # Generate random Gaussian noise
+            
 
-        cv2.drawContours(contour_frame, contours, -1, color, 1)
+            #cv2.drawContours(contour_frame, contours, -1, color, 1)
 
-        contour_frame = draw_lines_on_limbs(contour_frame,pose_results)
+            #contour_frame = draw_lines_on_limbs(contour_frame,pose_results)
 
-        noisy_img = add_random_noise(contour_frame,30)
-        
-        # Display the frame with contours on a dark background
-        cv2.imshow("Contours on Dark Background", noisy_img)
+            #noisy_img = add_random_noise(contour_frame,30)
+            
+            # Display the frame with contours on a dark background
+            cv2.imshow("Contours on Dark Background", frame_landmarks)
 
         
         # Break the loop if the user presses the 'q' key
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
     # Release the webcam and close all windows
     cap.release()

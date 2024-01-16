@@ -8,7 +8,7 @@ import os
 
 HEIGHT = 480
 WIDTH = 640
-model_path = 'D:/VsCodeProjects/Python/Github Projects/video_to_doodle/mediapipe_try/pose_landmarker_heavy.task'
+model_path = 'D:/VsCodeProjects/Python/Github Projects/video_to_doodle/ai_for_art/mediapipe_try/pose_landmarker_lite.task'
 frame_timestamp = 1
 
 
@@ -149,7 +149,7 @@ def draw_on_image(rgb_image, detection_result):
 options = PoseLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
     running_mode=VisionRunningMode.VIDEO,
-    num_poses=10,
+    num_poses=20,
     min_pose_detection_confidence=0.5,
     min_pose_presence_confidence=0.5,
 )
@@ -159,7 +159,7 @@ options = PoseLandmarkerOptions(
 blank_image = np.ones((HEIGHT,WIDTH,3),np.uint8)
 blank_image = 255* blank_image
 
-cap = cv2.VideoCapture("output.avi")
+cap = cv2.VideoCapture("videos/4.mp4")
 with PoseLandmarker.create_from_options(options) as landmarker:
     while True:        
         ret ,frame = cap.read()
