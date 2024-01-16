@@ -23,7 +23,7 @@ while True:
     # Convert the frame to grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     #gray=cv2.medianBlur(gray,1)
-    gray = cv2.GaussianBlur(src=gray, ksize=(3, 5), sigmaX=5) 
+    gray = cv2.GaussianBlur(src=gray, ksize=(3, 5), sigmaX=10) 
 
     # Adjust Canny edge detection thresholds for sensitivity
     low_threshold = 70 # You can experiment with different values
@@ -38,7 +38,7 @@ while True:
 
     # Draw contours on the black background
     contour_frame = black_background.copy()
-    cv2.drawContours(contour_frame, contours, -1, (0, 255, 0), 2)
+    cv2.drawContours(contour_frame, contours, -1, (0, 255, 0), 1)
     out.write(contour_frame)
 
     # Display the frame with contours on a dark background
