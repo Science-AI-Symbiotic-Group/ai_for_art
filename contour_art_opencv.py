@@ -59,8 +59,8 @@ width_int = int(width)
 height_int = int(height)
 
 # Define the codec and create a VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('output_video1.avi', fourcc, fps, (width_int, height_int))
+fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+out = cv2.VideoWriter('output_video.mp4', fourcc, fps, (width_int, height_int))
 
 def adjust_gamma(image, gamma=1.0):
 
